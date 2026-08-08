@@ -2,26 +2,15 @@ import { Prompt, FilterOptions } from '@/types/prompt';
 
 export async function fetchPrompts(): Promise<Prompt[]> {
   try {
-    // Try to fetch from CMS API if available
-    const cmsHost = process.env.NEXT_PUBLIC_CMS_HOST;
-    if (cmsHost) {
-      try {
-        const response = await fetch('/api/prompts');
-        if (response.ok) {
-          const data = await response.json();
-          console.log(`✓ Loaded ${data.length} prompts from CMS API`);
-          return data;
-        }
-      } catch (cmsError) {
-        console.warn('CMS API unavailable, falling back to sample data:', cmsError);
-      }
-    }
-
-    // Fallback to sample data
+    // Load prompts from static JSON file (for static export / GitHub Pages)
     const response = await fetch('/sample-prompts.json');
+    if (!response.ok) {
+      console.error('Failed to load sample-prompts.json');
+      return [];
+    }
     const data = await response.json();
     const prompts = data.prompts || [];
-    console.log(`✓ Loaded ${prompts.length} sample prompts from JSON`);
+    console.log(`✓ Loaded ${prompts.length} prompts from sample-prompts.json`);
     return prompts;
   } catch (error) {
     console.error('Error fetching prompts:', error);
