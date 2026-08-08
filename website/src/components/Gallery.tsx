@@ -31,7 +31,7 @@ export default function Gallery() {
           setPrompts(data.prompts);
           setLoading(false);
         }
-      } catch (_e) {
+      } catch {
         if (!cancelled) {
           setError('Failed to load prompts. Please try again.');
           setLoading(false);
