@@ -44,7 +44,7 @@ jobs:
 
       - name: Install Capacitor CLI
         working-directory: website
-        run: pnpm add -D @capacitor/cli @capacitor/android @capacitor/core
+        run: npm install -D @capacitor/cli @capacitor/android @capacitor/core
 
       - name: Add Android platform
         working-directory: website
