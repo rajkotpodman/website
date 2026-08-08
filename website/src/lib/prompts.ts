@@ -17,7 +17,7 @@ export async function fetchPrompts(): Promise<PromptData> {
 }
 
 export function filterPrompts(prompts: Prompt[], filters: FilterOptions): Prompt[] {
-  let filtered = prompts.filter(prompt => {
+  const filtered = prompts.filter(prompt => {
     const q = filters.searchQuery.toLowerCase();
     const matchesSearch = !q ||
       prompt.title.toLowerCase().includes(q) ||
