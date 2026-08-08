@@ -5,115 +5,121 @@ import { useCallback } from 'react';
 interface FilterPanelProps {
   categories: string[];
   styles: string[];
+  authors: string[];
   selectedCategory: string | null;
   selectedStyle: string | null;
+  selectedAuthor: string | null;
   featuredOnly: boolean;
-  onCategoryChange: (category: string | null) => void;
-  onStyleChange: (style: string | null) => void;
-  onFeaturedChange: (featured: boolean) => void;
+  sortBy: 'newest' | 'oldest' | 'title' | 'author';
+  onCategoryChange: (c: string | null) => void;
+  onStyleChange: (s: string | null) => void;
+  onAuthorChange: (a: string | null) => void;
+  onFeaturedChange: (f: boolean) => void;
+  onSortChange: (s: 'newest' | 'oldest' | 'title' | 'author') => void;
   totalResults: number;
 }
 
 export default function FilterPanel({
-  categories,
-  styles,
-  selectedCategory,
-  selectedStyle,
-  featuredOnly,
-  onCategoryChange,
-  onStyleChange,
-  onFeaturedChange,
+  categories, styles, authors,
+  selectedCategory, selectedStyle, selectedAuthor,
+  featuredOnly, sortBy,
+  onCategoryChange, onStyleChange, onAuthorChange,
+  onFeaturedChange, onSortChange,
   totalResults,
 }: FilterPanelProps) {
-  const handleClearFilters = useCallback(() => {
+  const hasActive = selectedCategory || selectedStyle || selectedAuthor || featuredOnly;
+
+  const clearAll = useCallback(() => {
     onCategoryChange(null);
     onStyleChange(null);
+    onAuthorChange(null);
     onFeaturedChange(false);
-  }, [onCategoryChange, onStyleChange, onFeaturedChange]);
+  }, [onCategoryChange, onStyleChange, onAuthorChange, onFeaturedChange]);
 
-  const hasActiveFilters = selectedCategory || selectedStyle || featuredOnly;
+  const FilterChip = ({ label, active, onClick, color = 'var(--color-accent)' }: { label: string; active: boolean; onClick: () => void; color?: string }) => (
+    <button
+      onClick={onClick}
+      className="text-xs px-3 py-1.5 rounded-full font-medium transition-all border whitespace-nowrap"
+      style={{
+        background: active ? color : 'transparent',
+        borderColor: active ? color : 'rgba(255,255,255,0.1)',
+        color: active ? '#fff' : 'var(--color-text-secondary)',
+      }}
+    >
+      {label}
+    </button>
+  );
 
-  return (
-    <div className="bg-white rounded-lg shadow-md p-6 sticky top-20 max-h-fit">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="font-bold text-lg text-gray-900">Filters</h3>
-        {hasActiveFilters && (
-          <button
-            onClick={handleClearFilters}
-            className="text-sm text-blue-600 hover:text-blue-800 font-semibold"
-          >
-            Clear
-          </button>
+  const FilterSection = ({ title, items, selected, onChange, color }: {
+    title: string; items: string[]; selected: string | null;
+    onChange: (v: string | null) => void; color?: string;
+  }) => (
+    <div className="mb-6">
+      <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-secondary)] mb-3">{title}</h4>
+      <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto pr-1">
+        {items.slice(0, 30).map(item => (
+          <FilterChip
+            key={item}
+            label={item}
+            active={selected === item}
+            onClick={() => onChange(selected === item ? null : item)}
+            color={color}
+          />
+        ))}
+        {items.length > 30 && (
+          <span className="text-[10px] text-[var(--color-text-secondary)] self-center">+{items.length - 30} more</span>
         )}
       </div>
+    </div>
+  );
 
-      {/* Results Count */}
-      <div className="mb-6 pb-6 border-b border-gray-200">
-        <p className="text-sm text-gray-600">
-          <span className="font-bold text-gray-900">{totalResults}</span> prompts found
-        </p>
+  const SortButton = ({ value, label }: { value: typeof sortBy; label: string }) => (
+    <button
+      onClick={() => onSortChange(value)}
+      className="text-xs px-3 py-1.5 rounded-full font-medium transition-all border"
+      style={{
+        background: sortBy === value ? 'var(--color-accent)' : 'transparent',
+        borderColor: sortBy === value ? 'var(--color-accent)' : 'rgba(255,255,255,0.1)',
+        color: sortBy === value ? '#fff' : 'var(--color-text-secondary)',
+      }}
+    >
+      {label}
+    </button>
+  );
+
+  return (
+    <div className="glass rounded-2xl p-5 sticky top-6">
+      <div className="flex items-center justify-between mb-5">
+        <h3 className="font-bold text-sm text-white">🔍 Filters</h3>
+        <div className="flex gap-2">
+          {hasActive && (
+            <button onClick={clearAll} className="text-[10px] text-[var(--color-accent)] hover:underline font-medium">Clear</button>
+          )}
+          <span className="text-[10px] text-[var(--color-text-secondary)] bg-white/5 px-2 py-0.5 rounded-full">{totalResults}</span>
+        </div>
       </div>
 
-      {/* Featured Filter */}
+      {/* Sort */}
       <div className="mb-6">
-        <label className="flex items-center cursor-pointer">
-          <input
-            type="checkbox"
-            checked={featuredOnly}
-            onChange={(e) => onFeaturedChange(e.target.checked)}
-            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-          />
-          <span className="ml-3 text-sm font-semibold text-gray-700">
-            ⭐ Featured Only
-          </span>
-        </label>
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-secondary)] mb-3">Sort By</h4>
+        <div className="flex flex-wrap gap-2">
+          <SortButton value="newest" label="🕐 Newest" />
+          <SortButton value="oldest" label="📜 Oldest" />
+          <SortButton value="title" label="🔤 Title" />
+          <SortButton value="author" label="👤 Author" />
+        </div>
       </div>
 
-      {/* Category Filter */}
-      {categories.length > 0 && (
-        <div className="mb-6">
-          <h4 className="font-semibold text-gray-900 mb-3 text-sm">Category</h4>
-          <div className="space-y-2 max-h-48 overflow-y-auto">
-            {categories.map((cat) => (
-              <label key={cat} className="flex items-center cursor-pointer">
-                <input
-                  type="radio"
-                  name="category"
-                  checked={selectedCategory === cat}
-                  onChange={() => onCategoryChange(selectedCategory === cat ? null : cat)}
-                  className="w-4 h-4 text-blue-600 focus:ring-2 focus:ring-blue-500"
-                />
-                <span className="ml-3 text-sm text-gray-700 hover:text-gray-900">
-                  {cat}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Featured toggle */}
+      <label className="flex items-center gap-3 mb-6 p-3 rounded-xl bg-white/[0.02] cursor-pointer hover:bg-white/[0.04] transition-colors">
+        <input type="checkbox" checked={featuredOnly} onChange={e => onFeaturedChange(e.target.checked)}
+          className="w-4 h-4 accent-[var(--color-accent)] rounded" />
+        <span className="text-sm text-[var(--color-text-secondary)]">⭐ Featured Only</span>
+      </label>
 
-      {/* Style Filter */}
-      {styles.length > 0 && (
-        <div>
-          <h4 className="font-semibold text-gray-900 mb-3 text-sm">Style</h4>
-          <div className="space-y-2 max-h-48 overflow-y-auto">
-            {styles.map((style) => (
-              <label key={style} className="flex items-center cursor-pointer">
-                <input
-                  type="radio"
-                  name="style"
-                  checked={selectedStyle === style}
-                  onChange={() => onStyleChange(selectedStyle === style ? null : style)}
-                  className="w-4 h-4 text-purple-600 focus:ring-2 focus:ring-purple-500"
-                />
-                <span className="ml-3 text-sm text-gray-700 hover:text-gray-900">
-                  {style}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
+      {categories.length > 0 && <FilterSection title="📂 Categories" items={categories} selected={selectedCategory} onChange={onCategoryChange} color="#e94560" />}
+      {styles.length > 0 && <FilterSection title="🎨 Styles" items={styles} selected={selectedStyle} onChange={onStyleChange} color="#7c4dff" />}
+      {authors.length > 0 && <FilterSection title="✍️ Authors" items={authors} selected={selectedAuthor} onChange={onAuthorChange} color="#42a5f5" />}
     </div>
   );
 }
