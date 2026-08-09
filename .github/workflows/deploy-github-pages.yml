@@ -33,6 +33,7 @@ jobs:
         run: npm run build
         env:
           NEXT_OUTPUT: export
+          NEXT_BASE_PATH: /website
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4

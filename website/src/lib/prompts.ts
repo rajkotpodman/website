@@ -1,8 +1,10 @@
 import { Prompt, FilterOptions, PromptData } from '@/types/prompt';
 
+const BASE_PATH = '/website';
+
 export async function fetchPrompts(): Promise<PromptData> {
   try {
-    const response = await fetch('/nano-banana-prompts.json');
+    const response = await fetch(`${BASE_PATH}/nano-banana-prompts.json`);
     if (!response.ok) {
       console.error('Failed to load nano-banana-prompts.json');
       return { prompts: [], total: 0 };
